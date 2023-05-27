@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE workflow [
+
+<!--
+Parameters needed by the job scheduler.
+-->
+<!ENTITY ACCOUNT         "RRFS-DEV">
+<!ENTITY SERVICE_ACCOUNT "RRFS-DEV">
+<!ENTITY HPSS_ACCOUNT    "RRFS-DEV">
+<!ENTITY SCHED           "pbspro">
+<!ENTITY QUEUE_DEFAULT   "dev_transfer">
+<!ENTITY QUEUE_HPSS      "dev_transfer">
+
+<!--
+Workflow task names.
+-->
+<!ENTITY ARCHIVE_TN      "archive">
+
+<!ENTITY TAG                  "n3v41_archive">
+<!ENTITY RRFSVER              "v0.4.1">
+<!ENTITY NET                  "rrfs_a">
+
+<!--
+Number of physical cores per node for the current machine.  This is used
+below in the <nodesize> tag, but that tag is not clearly documented.  This
+parameter may be unnecessary since each task now has its own variable that
+specifies the number of processes per node being used (the PPN_... entities).
+-->
+<!ENTITY NCORES_PER_NODE "128">
+
+<!--
+Directories and files.
+-->
+<!ENTITY JOBSDIR                  "/lfs/h2/emc/lam/noscrub/emc.lam/rrfs/&RRFSVER;/archive">
+<!ENTITY LOGDIR                   "/lfs/h2/emc/ptmp/emc.lam/rrfs/&RRFSVER;/logs/rrfs.@Y@m@d/@H">
+<!ENTITY CYCLE_BASEDIR            "/lfs/h2/emc/stmp/emc.lam/rrfs/&RRFSVER;">
+<!ENTITY FG_ROOT                  "/lfs/h2/emc/ptmp/emc.lam/rrfs/&RRFSVER;/nwges">
+<!ENTITY GLOBAL_VAR_DEFNS_FP      "/lfs/h2/emc/lam/noscrub/emc.lam/rrfs/&RRFSVER;/met_verif/var_defns.sh">
+<!ENTITY LOAD_MODULES_RUN_TASK_FP "/lfs/h2/emc/lam/noscrub/emc.lam/rrfs/&RRFSVER;/ufs-srweather-app/regional_workflow/ush/load_modules_run_task.sh">
+
+<!--
+Reservation types.  Reservations specify the queue/partition and account
+to use for a given task.  The "DEFAULT" reservation type is used for all 
+tasks other than GET_EXTRN_ICS_TN, GET_EXTRN_LBCS_TN, and RUN_FCST_TN; 
+the "HPSS" type is used for the GET_EXTRN_ICS_TN and GET_EXTRN_LBCS_TN 
+tasks; and the "FCST" type is used for the RUN_FCST_TN task.
+-->
+<!ENTITY RSRV_MIRROR "<account>&ACCOUNT;</account><queue>&QUEUE_DEFAULT;</queue>">
+<!ENTITY RSRV_HPSS    "<account>&HPSS_ACCOUNT;</account><queue>&QUEUE_HPSS;</queue>">
+
+
+<!--
+define resources used for each tasks
+-->
+
+<!ENTITY RESOURCES_PROC "<nodes>1:ppn=1</nodes>">
+<!ENTITY WALLTIME_PROC_RADAR  "05:58:00">
+
+<!ENTITY DEADLINE_MIRROR      "36:00:00">
+
+<!ENTITY START_TIME_PULL "010:10:00">
+<!ENTITY WALL_LIMIT_MIRROR '<deadline><cyclestr offset="&DEADLINE_MIRROR;">@Y@m@d@H@M</cyclestr></deadline>'>
+
+
+]>
+
+<workflow realtime="F" scheduler="&SCHED;" cyclethrottle="24" cyclelifespan="00:28:00:00">
+
+  <cycledef group="hourly"> 202305230000 202305252300 1:00:00 </cycledef>
+  <cycledef group="6hourly"> 202305230000 202305252300 6:00:00 </cycledef>
+
+  <log>
+    <cyclestr>&LOGDIR;/archive_wflow.log</cyclestr>
+  </log>
+
+<?ignore
+<task name="&PULL_REFC_TN;" cycledefs="6hourly"  maxtries="1">
+
+    &RSRV_MIRROR;
+
+    <command>"&JOBSDIR;/JREGIONAL_PULL_REFC"</command>
+
+    &RESOURCES_PROC; 
+    <memory>8G</memory>
+    <walltime>&WALLTIME_PROC_RADAR;</walltime>
+
+    <jobname>&TAG;_&PULL_REFC_TN;</jobname>
+    <join><cyclestr>&LOGDIR;/&PULL_REFC_TN;_@Y@m@d@H.log</cyclestr></join>
+
+    <envar><name>GLOBAL_VAR_DEFNS_FP</name><value>&GLOBAL_VAR_DEFNS_FP;</value></envar>
+    <envar><name>RRFSVER</name><value>&RRFSVER;</value></envar>
+    <envar><name>PDY</name><value><cyclestr>@Y@m@d</cyclestr></value></envar>
+    <envar><name>CYC</name><value><cyclestr>@H</cyclestr></value></envar>
+    <envar><name>CDATE</name><value><cyclestr offset="-72:00:00">@Y@m@d@H</cyclestr></value></envar>
+    <envar><name>CYCLE_DIR</name><value><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H</cyclestr></value></envar>
+
+    <dependency>
+      <and>
+        <timedep><cyclestr offset="&START_TIME_PULL;">@Y@m@d@H@M00</cyclestr></timedep>
+      </and>
+    </dependency>
+  
+</task>
+?>
+
+<task name="&ARCHIVE_TN;" cycledefs="hourly"  maxtries="1">
+
+    &RSRV_MIRROR;
+
+    <command>"&JOBSDIR;/JREGIONAL_ARCHIVE"</command>
+
+    &RESOURCES_PROC;
+    <memory>8G</memory>
+    <walltime>&WALLTIME_PROC_RADAR;</walltime>
+
+    <jobname>&TAG;_&ARCHIVE_TN;</jobname>
+    <join><cyclestr>&LOGDIR;/&ARCHIVE_TN;_@Y@m@d@H.log</cyclestr></join>
+
+    <envar><name>GLOBAL_VAR_DEFNS_FP</name><value>&GLOBAL_VAR_DEFNS_FP;</value></envar>
+    <envar><name>RRFSVER</name><value>&RRFSVER;</value></envar>
+    <envar><name>PDY</name><value><cyclestr>@Y@m@d</cyclestr></value></envar>
+    <envar><name>CYC</name><value><cyclestr>@H</cyclestr></value></envar>
+    <envar><name>CDATE</name><value><cyclestr offset="-00:00:00">@Y@m@d@H</cyclestr></value></envar>
+    <envar><name>CYCLE_DIR</name><value><cyclestr>&CYCLE_BASEDIR;/@Y@m@d@H</cyclestr></value></envar>
+
+    <dependency>
+      <and>
+        <timedep><cyclestr offset="&START_TIME_PULL;">@Y@m@d@H@M00</cyclestr></timedep>
+      </and>
+    </dependency>
+
+</task>
+
+
+</workflow>
