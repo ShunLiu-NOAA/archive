@@ -7,14 +7,14 @@ module load craype-network-ofi
 module load envvar/1.0
 module load core/rocoto/1.3.5
 
-cyctime=202305230100
+cyctime=202305291400
 #rocotostat -w FV3LAM_wflow.xml -d FV3LAM_wflow.db -c all
 
-test=12
+test=11
 
 case $test in
 11)
-taskname=
+taskname=archive
 ;;
 12)
 taskname=verify_verify_refc
