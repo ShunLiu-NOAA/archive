@@ -19,7 +19,7 @@ echo $mydate
 hour=${currentdate:8:2}
 echo $hour
 
-ARCHIVEDIR=/NCEPDEV/emc-meso/1year/emc.lam/exp/n3v41
+ARCHIVEDIR=/NCEPDEV/emc-meso/1year/emc.lam/para/c3v50
 archive_dir=$ARCHIVEDIR/rrfs.${mydate}
 proddir=/lfs/h2/emc/ptmp/emc.lam/rrfs/${RRFSVER}/prod/rrfs.${mydate}/$hour
 
