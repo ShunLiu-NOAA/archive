@@ -16,8 +16,9 @@ Workflow task names.
 -->
 <!ENTITY ARCHIVE_TN      "archive">
 
-<!ENTITY TAG                  "c3v50_archive">
-<!ENTITY RRFSVER              "v0.5.0">
+<!ENTITY TAG                  "c3v52_archive">
+<!ENTITY TAGver                  "c3v52">
+<!ENTITY RRFSVER              "v0.5.2">
 <!ENTITY NET                  "rrfs_a">
 
 <!--
@@ -66,7 +67,7 @@ define resources used for each tasks
 
 <workflow realtime="T" scheduler="&SCHED;" cyclethrottle="24" cyclelifespan="00:28:00:00">
 
-  <cycledef group="hourly"> 202305290000 202305312300 1:00:00 </cycledef>
+  <cycledef group="hourly"> 202305290000 202306302300 1:00:00 </cycledef>
 
   <log>
     <cyclestr>&LOGDIR;/archive_wflow.log</cyclestr>
@@ -82,6 +83,7 @@ define resources used for each tasks
     <join><cyclestr>&LOGDIR;/&ARCHIVE_TN;_@Y@m@d@H.log</cyclestr></join>
     <envar><name>GLOBAL_VAR_DEFNS_FP</name><value>&GLOBAL_VAR_DEFNS_FP;</value></envar>
     <envar><name>RRFSVER</name><value>&RRFSVER;</value></envar>
+    <envar><name>TAGver</name><value>&TAGver;</value></envar>
     <envar><name>PDY</name><value><cyclestr>@Y@m@d</cyclestr></value></envar>
     <envar><name>CYC</name><value><cyclestr>@H</cyclestr></value></envar>
     <envar><name>CDATE</name><value><cyclestr offset="-12:00:00">@Y@m@d@H</cyclestr></value></envar>
